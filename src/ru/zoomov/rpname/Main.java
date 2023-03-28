@@ -1,4 +1,3 @@
-/* Decompiler 23ms, total 233ms, lines 180 */
 package ru.zoomov.rpname;
 
 import java.io.File;
