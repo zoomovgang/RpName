@@ -1,0 +1,12 @@
+main: ru.zoomov.rpname.Main
+name: RpName
+version: '1.0'
+description: RpName
+author: zoomov
+commands:
+  name:
+    description: Name
+  setsname:
+    description: SetSName
+  setname:
+    description: SetName
