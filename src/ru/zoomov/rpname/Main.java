@@ -1,5 +1,12 @@
+/* Decompiler 23ms, total 233ms, lines 180 */
 package ru.zoomov.rpname;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,166 +19,162 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 public class Main extends JavaPlugin implements Listener {
-    private Map<String, String[]> playerNames = new HashMap<>();
+   private Map<String, String[]> playerNames = new HashMap();
 
-    @Override
-    public void onEnable() {
-        getServer().getPluginManager().registerEvents(this, this);
-        loadPlayerNames();
-    }
+   public void onEnable() {
+      this.getServer().getPluginManager().registerEvents(this, this);
+      this.loadPlayerNames();
+   }
 
-    @Override
-    public void onDisable() {
-        savePlayerNames();
-    }
+   public void onDisable() {
+      this.savePlayerNames();
+   }
 
-    private void loadPlayerNames() {
-        File file = new File(getDataFolder(), "data.yml");
-        if (!file.exists()) {
-            return;
-        }
+   private void loadPlayerNames() {
+      File file = new File(this.getDataFolder(), "data.yml");
+      if (file.exists()) {
+         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+         ConfigurationSection section = config.getConfigurationSection("players");
+         if (section != null) {
+            Iterator var5 = section.getKeys(false).iterator();
 
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        ConfigurationSection section = config.getConfigurationSection("players");
-        if (section == null) {
-            return;
-        }
-
-        for (String player : section.getKeys(false)) {
-            String[] names = section.getString(player).split(" ");
-            playerNames.put(player.toLowerCase(), names);
-        }
-    }
-
-    private void savePlayerNames() {
-        File file = new File(getDataFolder(), "data.yml");
-        YamlConfiguration config = new YamlConfiguration();
-
-        for (Map.Entry<String, String[]> entry : playerNames.entrySet()) {
-            String name = entry.getValue()[0];
-            String sname = entry.getValue()[1];
-            if (name == null && sname == null) {
-                continue;
+            while(var5.hasNext()) {
+               String player = (String)var5.next();
+               String[] names = section.getString(player).split(" ");
+               this.playerNames.put(player.toLowerCase(), names);
             }
-            if (name == null) {
-                name = "";
+
+         }
+      }
+   }
+
+   private void savePlayerNames() {
+      File file = new File(this.getDataFolder(), "data.yml");
+      YamlConfiguration config = new YamlConfiguration();
+      Iterator var4 = this.playerNames.entrySet().iterator();
+
+      while(true) {
+         Entry entry;
+         String name;
+         String sname;
+         do {
+            if (!var4.hasNext()) {
+               try {
+                  config.save(file);
+               } catch (IOException var7) {
+                  var7.printStackTrace();
+               }
+
+               return;
             }
-            if (sname == null) {
-                sname = "";
-            }
-            config.set("players." + entry.getKey(), name + " " + sname);
-        }
 
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+            entry = (Entry)var4.next();
+            name = ((String[])entry.getValue())[0];
+            sname = ((String[])entry.getValue())[1];
+         } while(name == null && sname == null);
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        String[] names = playerNames.get(player.getName().toLowerCase());
+         if (name == null) {
+            name = "";
+         }
 
-        if (names != null && names.length >= 2) {
-            String prefix = ChatColor.GRAY + "[" + names[0] + " " + names[1] + "] ";
-            player.setDisplayName(prefix + player.getName());
-            player.setPlayerListName(prefix + player.getName());
-        }
-    }
+         if (sname == null) {
+            sname = "";
+         }
 
-    @EventHandler
-    public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
-        String[] names = playerNames.get(player.getName().toLowerCase());
+         config.set("players." + (String)entry.getKey(), name + " " + sname);
+      }
+   }
 
-        if (names != null && names.length >= 2) {
-            String prefix = ChatColor.GRAY + "[" + names[0] + " " + names[1] + "] ";
-            event.setFormat(prefix + "<%1$s> %2$s");
-        }
-    }
+   @EventHandler
+   public void onPlayerJoin(PlayerJoinEvent event) {
+      Player player = event.getPlayer();
+      String[] names = (String[])this.playerNames.get(player.getName().toLowerCase());
+      if (names != null && names.length >= 2) {
+         String prefix = ChatColor.GRAY + "[" + names[0] + " " + names[1] + "] ";
+         player.setDisplayName(prefix + player.getName());
+         player.setPlayerListName(prefix + player.getName());
+      }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage("Только игроки могут использовать эту команду!");
-            return true;
-        }
+   }
 
-        Player player = (Player) sender;
-        String playerName = player.getName().toLowerCase();
+   @EventHandler
+   public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
+      Player player = event.getPlayer();
+      String[] names = (String[])this.playerNames.get(player.getName().toLowerCase());
+      if (names != null && names.length >= 2) {
+         String prefix = ChatColor.GRAY + "[" + names[0] + " " + names[1] + "] ";
+         event.setFormat(prefix + "<%1$s> %2$s");
+      }
 
-        if (command.getName().equalsIgnoreCase("name")) {
+   }
+
+   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+      if (!(sender instanceof Player)) {
+         sender.sendMessage("РўРѕР»СЊРєРѕ РёРіСЂРѕРєРё РјРѕРіСѓС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ СЌС‚Сѓ РєРѕРјР°РЅРґСѓ!");
+         return true;
+      } else {
+         Player player = (Player)sender;
+         String playerName = player.getName().toLowerCase();
+         String targetName;
+         String sname;
+         if (command.getName().equalsIgnoreCase("name")) {
             if (args.length == 0) {
-                sender.sendMessage(ChatColor.RED + "Используйте: /" + label + " Имя Фамилия");
-                return true;
+               sender.sendMessage(ChatColor.RED + "РСЃРїРѕР»СЊР·СѓР№С‚Рµ: /" + label + " РРјСЏ Р¤Р°РјРёР»РёСЏ");
+               return true;
+            } else {
+               targetName = args[0];
+               sname = args.length > 1 ? args[1] : "";
+               this.playerNames.put(playerName, new String[]{targetName, sname});
+               sender.sendMessage(ChatColor.GREEN + "Р’С‹ СѓСЃС‚Р°РЅРѕРІРёР»Рё СЃРµР±Рµ " + targetName + " " + sname);
+               return true;
             }
-
-            String name = args[0];
-            String sname = (args.length > 1) ? args[1] : "";
-
-            playerNames.put(playerName, new String[] { name, sname });
-            sender.sendMessage(ChatColor.GREEN + "Вы установили себе " + name + " " + sname);
-            return true;
-        }
-
-        if (command.getName().equalsIgnoreCase("setname")) {
-            if (!player.hasPermission("rpname.admin")) {
-                sender.sendMessage(ChatColor.RED + "У вас не хватает прав!");
-                return true;
+         } else {
+            String[] names;
+            if (command.getName().equalsIgnoreCase("setname")) {
+               if (!player.hasPermission("rpname.admin")) {
+                  sender.sendMessage(ChatColor.RED + "РЈ РІР°СЃ РЅРµ С…РІР°С‚Р°РµС‚ РїСЂР°РІ!");
+                  return true;
+               } else if (args.length < 2) {
+                  sender.sendMessage(ChatColor.RED + "РСЃРїРѕР»СЊР·СѓР№С‚Рµ: /" + label + " [РќРёРє] [РРјСЏ]");
+                  return true;
+               } else {
+                  targetName = args[0].toLowerCase();
+                  sname = args[1];
+                  names = (String[])this.playerNames.get(targetName);
+                  if (names == null) {
+                     sender.sendMessage(ChatColor.RED + "РРіСЂРѕРє " + targetName + " РЅРµ РЅР°Р№РґРµРЅ!");
+                     return true;
+                  } else {
+                     this.playerNames.put(targetName, new String[]{sname, names[1]});
+                     sender.sendMessage(ChatColor.GREEN + "РРіСЂРѕРєСѓ " + targetName + " Р±С‹Р»Рѕ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕ РёРјСЏ " + sname);
+                     return true;
+                  }
+               }
+            } else if (command.getName().equalsIgnoreCase("setsname")) {
+               if (!player.hasPermission("rpname.admin")) {
+                  sender.sendMessage(ChatColor.RED + "РЈ РІР°СЃ РЅРµ С…РІР°С‚Р°РµС‚ РїСЂР°РІ!");
+                  return true;
+               } else if (args.length < 2) {
+                  sender.sendMessage(ChatColor.RED + "РСЃРїРѕР»СЊР·СѓР№С‚: /" + label + " [РќРёРє] [Р¤Р°РјРёР»РёСЏ]");
+                  return true;
+               } else {
+                  targetName = args[0].toLowerCase();
+                  sname = args[1];
+                  names = (String[])this.playerNames.get(targetName);
+                  if (names == null) {
+                     sender.sendMessage(ChatColor.RED + "РРіСЂРѕРє " + targetName + " РЅРµ РЅР°Р№РґРµРЅ!");
+                     return true;
+                  } else {
+                     this.playerNames.put(targetName, new String[]{names[0], sname});
+                     sender.sendMessage(ChatColor.GREEN + "РРіСЂРѕРєСѓ " + targetName + " СѓСЃС‚Р°РЅРѕРІР»РµРЅР° С„Р°РјРёР»РёСЏ " + sname);
+                     return true;
+                  }
+               }
+            } else {
+               return false;
             }
-
-            if (args.length < 2) {
-                sender.sendMessage(ChatColor.RED + "Используйте: /" + label + " [Ник] [Имя]");
-                return true;
-            }
-
-            String targetName = args[0].toLowerCase();
-            String name = args[1];
-
-            String[] names = playerNames.get(targetName);
-            if (names == null) {
-                sender.sendMessage(ChatColor.RED + "Игрок " + targetName + " не найден!");
-                return true;
-            }
-
-            playerNames.put(targetName, new String[] { name, names[1] });
-            sender.sendMessage(ChatColor.GREEN + "Игроку " + targetName + " было установлено имя " + name);
-            return true;
-        }
-
-        if (command.getName().equalsIgnoreCase("setsname")) {
-            if (!player.hasPermission("rpname.admin")) {
-                sender.sendMessage(ChatColor.RED + "У вас не хватает прав!");
-                return true;
-            }
-
-            if (args.length < 2) {
-                sender.sendMessage(ChatColor.RED + "Используйт: /" + label + " [Ник] [Фамилия]");
-                return true;
-            }
-
-            String targetName = args[0].toLowerCase();
-            String sname = args[1];
-
-            String[] names = playerNames.get(targetName);
-            if (names == null) {
-                sender.sendMessage(ChatColor.RED + "Игрок " + targetName + " не найден!");
-                return true;
-            }
-
-            playerNames.put(targetName, new String[] { names[0], sname });
-            sender.sendMessage(ChatColor.GREEN + "Игроку " + targetName + " установлена фамилия " + sname);
-            return true;
-        }
-
-        return false;
-    }
+         }
+      }
+   }
 }
