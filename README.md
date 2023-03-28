@@ -15,3 +15,12 @@
 
 Все данные лежат в файле data.yml 
 
+Плейсхолдеры
+
+%rpname_name% - Имя
+
+%rpname_sname% - Фамилия
+
+%rpname_full% - И то и то
+
+
