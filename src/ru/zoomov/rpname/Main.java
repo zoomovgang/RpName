@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,15 +18,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin implements Listener {
    private Map<String, String[]> playerNames = new HashMap();
 
    public void onEnable() {
-      this.getServer().getPluginManager().registerEvents(this, this);
-      this.loadPlayerNames();
-   }
+	    this.getServer().getPluginManager().registerEvents(this, this);
+	    this.loadPlayerNames(); 
+	    if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+	        new PlaceholderRPName(this).register();
+       }}
 
    public void onDisable() {
       this.savePlayerNames();
@@ -84,6 +89,11 @@ public class Main extends JavaPlugin implements Listener {
          config.set("players." + (String)entry.getKey(), name + " " + sname);
       }
    }
+   
+   public Map<String, String[]> getPlayerNames() {
+	    return this.playerNames;
+	}
+
 
    @EventHandler
    public void onPlayerJoin(PlayerJoinEvent event) {
